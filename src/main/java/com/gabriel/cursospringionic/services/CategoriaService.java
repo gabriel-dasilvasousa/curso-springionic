@@ -3,10 +3,12 @@ package com.gabriel.cursospringionic.services;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.gabriel.cursospringionic.domain.Categoria;
 import com.gabriel.cursospringionic.repositories.CategoriaRepository;
+import com.gabriel.cursospringionic.services.exceptions.DataIntegrityException;
 import com.gabriel.cursospringionic.services.exceptions.ObjectNotFoundException;
 
 @Service
@@ -29,5 +31,15 @@ public class CategoriaService {
 	public Categoria update(Categoria obj) {
 		findById(obj.getId());
 		return repo.save(obj);
+	}
+	
+	public void delete(Integer id) {
+		findById(id);
+		try {
+			repo.deleteById(id);
+		}
+		catch(DataIntegrityViolationException e) {
+			throw new DataIntegrityException("Não é possível excluir uma categoria que possui produtos");
+		}
 	}
 }
