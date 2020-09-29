@@ -15,11 +15,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.gabriel.cursospringionic.domain.Cidade;
 import com.gabriel.cursospringionic.domain.Cliente;
 import com.gabriel.cursospringionic.domain.Endereco;
+import com.gabriel.cursospringionic.domain.enums.Perfil;
 import com.gabriel.cursospringionic.domain.enums.TipoCliente;
 import com.gabriel.cursospringionic.dto.ClienteDTO;
 import com.gabriel.cursospringionic.dto.ClienteNewDTO;
 import com.gabriel.cursospringionic.repositories.ClienteRepository;
 import com.gabriel.cursospringionic.repositories.EnderecoRepository;
+import com.gabriel.cursospringionic.security.UserSS;
+import com.gabriel.cursospringionic.services.exceptions.AuthorizationException;
 import com.gabriel.cursospringionic.services.exceptions.DataIntegrityException;
 import com.gabriel.cursospringionic.services.exceptions.ObjectNotFoundException;
 
@@ -36,6 +39,14 @@ public class ClienteService {
 	private EnderecoRepository enderecoRepository;
 
 	public Cliente findById(Integer id) {
+		
+		UserSS user = UserService.authenticated();
+		
+		if(user == null || !user.hasRole(Perfil.ADMIN) && !id.equals(user.getId())) {
+			throw new AuthorizationException("Acesso negado");
+			
+		}
+		
 		Optional<Cliente> obj = repo.findById(id);
 		return obj.orElseThrow(() -> new ObjectNotFoundException(
 				"Objeto não encontrado! Id: " + id + ", Tipo: " + Cliente.class.getName()));
